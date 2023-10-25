@@ -72,7 +72,7 @@ PRODUCT_PACKAGES += \
 
 # Fonts
 PRODUCT_COPY_FILES += \
-    $(call find-copy-subdir-files,*,vendor/aospa/prebuilts/fonts/,$(TARGET_COPY_OUT_PRODUCT)/fonts) \
+    $(call find-copy-subdir-files,*,vendor/aospa/fonts/,$(TARGET_COPY_OUT_PRODUCT)/fonts) \
     vendor/aospa/target/config/fonts_customization.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/fonts_customization.xml
 
 $(call inherit-product, external/google-fonts/lato/fonts.mk)
@@ -118,15 +118,11 @@ SYSTEMUI_OPTIMIZE_JAVA := true
 
 # MTE
 PRODUCT_SYSTEM_EXT_PROPERTIES += \
-    arm64.memtag.process.system_server=off
+    persist.arm64.memtag.system_server=off
 
 # Navigation
 PRODUCT_PRODUCT_PROPERTIES += \
     ro.boot.vendor.overlay.theme=com.android.internal.systemui.navbar.gestural
-
-# Neural Network
-PRODUCT_PACKAGES += \
-    libprotobuf-cpp-full-rtti
 
 # One Handed Mode
 PRODUCT_PRODUCT_PROPERTIES += \
@@ -149,9 +145,6 @@ ifneq ($(filter RELEASE BETA,$(AOSPA_BUILDTYPE)),)
 PRODUCT_PACKAGES += ParanoidHub
 endif
 
-PRODUCT_PACKAGES += \
-    init.aospa-hub.rc
-
 # Paranoid Sense
 PRODUCT_PACKAGES += \
     ParanoidSense
@@ -170,7 +163,12 @@ PRODUCT_COPY_FILES += \
 
 # Privapp-permissions
 PRODUCT_SYSTEM_EXT_PROPERTIES += \
-    ro.control_privapp_permissions=enforce
+    ro.control_privapp_permissions?=enforce
+
+# Protobuf - Workaround for prebuilt Qualcomm HAL
+PRODUCT_PACKAGES += \
+    libprotobuf-cpp-full-3.9.1-vendorcompat \
+    libprotobuf-cpp-lite-3.9.1-vendorcompat
 
 # QTI VNDK Framework Detect
 PRODUCT_PACKAGES += \
@@ -199,6 +197,17 @@ PRODUCT_PRODUCT_PROPERTIES += \
 ifneq ($(TARGET_NO_TELEPHONY), true)
 PRODUCT_COPY_FILES += \
     vendor/aospa/target/config/sensitive_pn.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/sensitive_pn.xml
+endif
+
+# Sensors
+PRODUCT_PACKAGES += \
+    android.frameworks.sensorservice@1.0.vendor
+
+# StrictMode
+ifneq ($(TARGET_BUILD_VARIANT),eng)
+# Disable extra StrictMode features on all non-engineering builds
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+    persist.sys.strictmode.disable=true
 endif
 
 # SEPolicy
@@ -237,6 +246,13 @@ PRODUCT_BOOT_JARS += \
     tcmiface \
     telephony-ext
 endif
+
+# TextClassifier
+PRODUCT_PACKAGES += \
+    libtextclassifier_annotator_en_model \
+    libtextclassifier_annotator_universal_model \
+    libtextclassifier_actions_suggestions_universal_model \
+    libtextclassifier_lang_id_model
 
 # WiFi
 PRODUCT_PACKAGES += \
